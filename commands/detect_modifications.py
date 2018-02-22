@@ -1,4 +1,5 @@
 import os
+from collections import Counter
 from contextlib import contextmanager
 
 from click import ClickException
@@ -79,16 +80,33 @@ def _write_list_to_file(list_with_modified_imports, file_name):
 def _generate_list_with_modified_imports(origin_import_list, working_import_list):
     # type: (set, set) -> set
     """
-    This methods looks for imports that keep the name but has has different modules path
+    This methods looks for imports that keep the same name but has has different modules path
 
     :return: A list with unique elements that has the same name but different modules path
     :rtype: set
     """
-    return {
+    # Create a new set with elements present origin_list or working_list but not on both,
+    # this helps to filter classes that could have same name but different modules.
+    difference = origin_import_list.symmetric_difference(working_import_list)
+
+    origin_filtered = origin_import_list.intersection(difference)
+    working_filtered = working_import_list.intersection(difference)
+    list_with_modified_imports = {
         (origin.module + "." + origin.name, working.module + "." + working.name)
-        for origin in origin_import_list
-        for working in working_import_list
+        for origin in origin_filtered
+        for working in working_filtered
         if working.name is not '*'
         if origin.name == working.name
         if origin.module != working.module
     }
+    import_from = [i[0] for i in list(list_with_modified_imports)]
+    sanity_check = [class_name
+                    for class_name, number_of_occurrences in Counter(import_from).items()
+                    if number_of_occurrences > 1]
+    if len(sanity_check) > 0:
+        raise ClickException("Oh this is odd, unfortunately, you moved two objects with the same "
+                             "name on different paths and that could be catastrophic while running "
+                             "the script to rename, please contact me to solve this problem ;) "
+                             "These are the problematic paths: {}".format(repr(sanity_check)))
+
+    return list_with_modified_imports
