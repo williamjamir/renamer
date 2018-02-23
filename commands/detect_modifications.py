@@ -1,3 +1,5 @@
+from __future__ import print_function, print_function
+
 import os
 from collections import Counter
 from contextlib import contextmanager
@@ -32,9 +34,13 @@ def branch_checkout(repo, branch_name):
     if (repo.is_dirty() or len(repo.untracked_files) != 0):
         raise ClickException("The repository is dirty, please clean it first ")
 
+    current_branch = repo.active_branch.name
     getattr(repo.heads, branch_name).checkout()
 
-    yield
+    try:
+        yield
+    finally:
+        getattr(repo.heads, current_branch).checkout()
 
 
 def track_modifications(**kwargs):
@@ -135,7 +141,7 @@ def _check_for_conflicts(list_with_modified_imports):
     if len(imports_with_conflict) > 0:
         echo(CONFLICT_MSG.format('\n -> '.join(imports_with_conflict)))
 
-        if confirm(INFORMATIVE_CONFLICT_MSG):
+        if confirm(INFORMATIVE_CONFLICT_MSG, abort=True):
             list_with_modified_imports = [modified_import for modified_import in
                                           list_with_modified_imports
                                           if modified_import[0] not in imports_with_conflict

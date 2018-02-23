@@ -12,11 +12,14 @@ def time_it(msg):
     yield
     print("Took: ", timeit.default_timer() - start_time, " ", msg)
 
-def walkdir(folder):
-    """Walk through each files in a directory"""
-    for dirpath, dirs, files in os.walk(folder):
+
+def walk_on_py_files(folder):
+    """
+    Walk through each python files in a directory
+    """
+    for dir_path, _, files in os.walk(folder):
         for filename in fnmatch.filter(files, '*.py'):
-            yield os.path.abspath(os.path.join(dirpath, filename))
+            yield os.path.abspath(os.path.join(dir_path, filename))
 
 
 Import = namedtuple("Import", ["module", "name"])
@@ -31,7 +34,7 @@ def get_imports(project_path):
     :type project_path: str
     :rtype: commands.utils.Import
     """
-    for file_path in walkdir(project_path):
+    for file_path in walk_on_py_files(project_path):
 
         with open(file_path, mode='r') as file:
             file_content = ast.parse(file.read(), file_path)

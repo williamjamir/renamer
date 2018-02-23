@@ -4,7 +4,7 @@ import pasta
 from pasta.augment import rename
 from tqdm import tqdm
 
-from commands.utils import time_it, walkdir
+from commands.utils import time_it, walk_on_py_files
 from list_of_import import list_of_classes_to_move
 
 
@@ -39,8 +39,8 @@ def start_execution(inputpath):
         pbar.update()
 
     with time_it(msg):
-        for i in walkdir(inputpath):
-            results.append(pool.apply_async(execute_rename, args=(i,), callback=update))
+        for python_file in walk_on_py_files(inputpath):
+            results.append(pool.apply_async(execute_rename, args=(python_file,), callback=update))
 
         pool.close()
         pool.join()
@@ -55,12 +55,9 @@ def start_execution(inputpath):
 
 
 def scan_total_of_files(inputpath):
-    print("")
-    print("Analyzing... (path: ", inputpath, ")")
     filecounter = 0
-    with time_it(msg="seconds to scan the files"):
-        for filepath in walkdir(inputpath):
-            filecounter += 1
+    for filepath in walk_on_py_files(inputpath):
+        filecounter += 1
     return filecounter
 
 
