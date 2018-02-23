@@ -51,3 +51,4 @@ def get_imports(project_path):
 
             for n in node.names:
                 yield Import(module, n.name)
+

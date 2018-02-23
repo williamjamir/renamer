@@ -2,10 +2,19 @@ import os
 from collections import Counter
 from contextlib import contextmanager
 
-from click import ClickException
+from click import ClickException, confirm, echo
 from git import Repo
 
 from commands.utils import get_imports
+
+CONFLICT_MSG = "\nUnfortunately, you moved two objects with the same name on " \
+               "different paths.\nThis situation could be catastrophic while running " \
+               "the script for rename the imports. \n" \
+               "These are the imports that have conflict: \n -> {} \n"
+
+INFORMATIVE_CONFLICT_MSG = 'Do you want to generate the file without this import? (otherwise the script ' \
+                           'will be aborted'
+
 
 
 @contextmanager
@@ -58,12 +67,11 @@ def track_modifications(**kwargs):
     with branch_checkout(repo, work_branch):
         working_import_list = {imp for imp in get_imports(project_path)}
 
-    modified_imports = _generate_list_with_modified_imports(origin_import_list, working_import_list)
-    print(type(kwargs['output_file']))
-    _write_list_to_file(modified_imports, kwargs['output_file'])
+    modified_imports = generate_list_with_modified_imports(origin_import_list, working_import_list)
+    write_list_to_file(modified_imports, kwargs['output_file'])
 
 
-def _write_list_to_file(list_with_modified_imports, file_name):
+def write_list_to_file(list_with_modified_imports, file_name):
     # type: (set) -> None
     """
     Write the list of modified imports on a python file, the python file per default will be named
@@ -72,12 +80,13 @@ def _write_list_to_file(list_with_modified_imports, file_name):
     The name of the list (inside the file) cannot be changed since it will be used later on the
     script for renaming the project.
     """
+    echo('Generating the file {0}'.format(file_name))
     with open(file_name, 'w') as fp:
         fp.write("list_of_classes_to_move =")
         fp.writelines(repr(list(list_with_modified_imports)))
 
 
-def _generate_list_with_modified_imports(origin_import_list, working_import_list):
+def generate_list_with_modified_imports(origin_import_list, working_import_list):
     # type: (set, set) -> set
     """
     This methods looks for imports that keep the same name but has has different modules path
@@ -85,12 +94,28 @@ def _generate_list_with_modified_imports(origin_import_list, working_import_list
     :return: A list with unique elements that has the same name but different modules path
     :rtype: set
     """
-    # Create a new set with elements present origin_list or working_list but not on both,
-    # this helps to filter classes that could have same name but different modules.
-    difference = origin_import_list.symmetric_difference(working_import_list)
 
+    origin_filtered, working_filtered = _filter_import(origin_import_list, working_import_list)
+
+    moved_imports = _find_moved_imports(origin_filtered, working_filtered)
+
+    list_with_modified_imports = _check_for_conflicts(moved_imports)
+
+    return list_with_modified_imports
+
+
+def _filter_import(origin_import_list, working_import_list):
+    """
+    Create a new set with elements present origin_list or working_list but not on both,
+    this helps to filter classes that could have same name but different modules.
+    """
+    difference = origin_import_list.symmetric_difference(working_import_list)
     origin_filtered = origin_import_list.intersection(difference)
     working_filtered = working_import_list.intersection(difference)
+    return origin_filtered, working_filtered
+
+
+def _find_moved_imports(origin_filtered, working_filtered):
     list_with_modified_imports = {
         (origin.module + "." + origin.name, working.module + "." + working.name)
         for origin in origin_filtered
@@ -99,14 +124,20 @@ def _generate_list_with_modified_imports(origin_import_list, working_import_list
         if origin.name == working.name
         if origin.module != working.module
     }
-    import_from = [i[0] for i in list(list_with_modified_imports)]
-    sanity_check = [class_name
-                    for class_name, number_of_occurrences in Counter(import_from).items()
-                    if number_of_occurrences > 1]
-    if len(sanity_check) > 0:
-        raise ClickException("Oh this is odd, unfortunately, you moved two objects with the same "
-                             "name on different paths and that could be catastrophic while running "
-                             "the script to rename, please contact me to solve this problem ;) "
-                             "These are the problematic paths: {}".format(repr(sanity_check)))
+    return list_with_modified_imports
 
+
+def _check_for_conflicts(list_with_modified_imports):
+    import_from = [modified_import[0] for modified_import in list(list_with_modified_imports)]
+    imports_with_conflict = [class_name
+                             for class_name, number_of_occurrences in Counter(import_from).items()
+                             if number_of_occurrences > 1]
+    if len(imports_with_conflict) > 0:
+        echo(CONFLICT_MSG.format('\n -> '.join(imports_with_conflict)))
+
+        if confirm(INFORMATIVE_CONFLICT_MSG):
+            list_with_modified_imports = [modified_import for modified_import in
+                                          list_with_modified_imports
+                                          if modified_import[0] not in imports_with_conflict
+                                          if modified_import[1] not in imports_with_conflict]
     return list_with_modified_imports
