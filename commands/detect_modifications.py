@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from click import ClickException, confirm, echo
 from git import Repo
 
+from commands.rename_import import scan_total_of_files
 from commands.utils import get_imports
 
 CONFLICT_MSG = "\nUnfortunately, you moved two objects with the same name on " \
@@ -28,7 +29,7 @@ def branch_checkout(repo, branch_name):
     :param repo: A git.Repo object that represents the git repository from the project
     :type repo: git.Repo
 
-    :param branch_name: Name of the branch that Git should move into
+    :param branch_name: Name of the branch that Git should move intoN
     :type branch_name: str
     """
     if (repo.is_dirty() or len(repo.untracked_files) != 0):
@@ -66,12 +67,13 @@ def track_modifications(**kwargs):
             "Please, change your activate branch to where you made you changes on the code, "
             "or use the option --origin_branch and --work_branch  ."
         )
+    file_counter = scan_total_of_files(project_path)
 
     with branch_checkout(repo, origin_branch):
-        origin_import_list = {imp for imp in get_imports(project_path)}
+        origin_import_list = {imp for imp in get_imports(project_path, file_counter)}
 
     with branch_checkout(repo, work_branch):
-        working_import_list = {imp for imp in get_imports(project_path)}
+        working_import_list = {imp for imp in get_imports(project_path, file_counter)}
 
     modified_imports = generate_list_with_modified_imports(origin_import_list, working_import_list)
     write_list_to_file(modified_imports, kwargs['output_file'])
