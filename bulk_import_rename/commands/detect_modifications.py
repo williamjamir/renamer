@@ -7,8 +7,7 @@ from contextlib import contextmanager
 from click import ClickException, confirm, echo
 from git import Repo
 
-
-from commands.utils import get_imports, total_of_py_files_on_project
+from bulk_import_rename.commands.utils import get_imports, total_of_py_files_on_project
 
 CONFLICT_MSG = "\nUnfortunately, you moved two objects with the same name on " \
                "different paths.\nThis situation could be catastrophic while running " \
@@ -80,7 +79,6 @@ def track_modifications(**kwargs):
 
 
 def write_list_to_file(list_with_modified_imports, file_name):
-    # type: (set) -> None
     """
     Write the list of modified imports on a python file, the python file per default will be named
     "list_output.py" but can be changed by passing the argument --output_file
@@ -95,7 +93,6 @@ def write_list_to_file(list_with_modified_imports, file_name):
 
 
 def generate_list_with_modified_imports(origin_import_list, working_import_list):
-    # type: (set, set) -> set
     """
     This methods looks for imports that keep the same name but has has different modules path
 

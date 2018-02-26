@@ -2,8 +2,8 @@ import sys
 
 import click
 
-from commands.detect_modifications import track_modifications
-from commands.rename_import import run_rename
+from bulk_import_rename.commands.detect_modifications import track_modifications
+from bulk_import_rename.commands.rename_import import run_rename
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 

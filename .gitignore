@@ -102,3 +102,4 @@ ENV/
 
 .idea/
 .pytest_cache/
+/bulk_import_rename/tests/.pytest_cache/

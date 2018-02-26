@@ -8,7 +8,7 @@ import six
 from pasta.augment import rename
 from tqdm import tqdm
 
-from commands.utils import total_of_py_files_on_project, walk_on_py_files
+from bulk_import_rename.commands.utils import total_of_py_files_on_project, walk_on_py_files
 
 
 def execute_rename(file_path, moved_imports):
