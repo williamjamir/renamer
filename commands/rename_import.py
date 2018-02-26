@@ -1,71 +1,71 @@
+from __future__ import print_function
+
 from multiprocessing import Pool, cpu_count
 
+import click
 import pasta
+import six
 from pasta.augment import rename
 from tqdm import tqdm
 
-from commands.utils import time_it, walk_on_py_files
+from commands.utils import total_of_py_files_on_project, walk_on_py_files
 
 
-# from list_of_import import list_of_classes_to_move
+def execute_rename(file_path, moved_imports):
+    if six.PY2:
+        import imp
+        import_from_user = imp.load_source('moved_imports', moved_imports)
+    else:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("moved_imports", moved_imports)
+        import_from_user = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(import_from_user)
 
-
-def execute_rename(filepath):
-    with open(filepath, mode='r') as file:
+    with open(file_path, mode='r') as file:
         tree = pasta.parse(file.read())
-        list_of_classes_to_move = []
-        for class_to_move in list_of_classes_to_move:
+        for class_to_move in import_from_user.imports_to_move:
             old_path = class_to_move[0]
             new_path = class_to_move[1]
             try:
                 rename.rename_external(tree, old_path, new_path)
             except ValueError:
-                print("Some error happened on the following path:" + filepath)
-                print(
-                    "While trying to rename from:" + old_path + " to: " + new_path)
+                click.ClickException("Some error happened on the following path: {0}.\n "
+                                     "While trying to rename from: {1} to {2}"
+                                     .format(file_path, old_path, new_path))
         source_code = pasta.dump(tree)
 
-    with open(filepath, mode='w') as file:
+    with open(file_path, mode='w') as file:
         file.write(source_code)
 
 
-def start_execution(inputpath):
-    filecounter = scan_total_of_files(inputpath)
+def start_execution(project_path, moved_imports):
+    file_counter = total_of_py_files_on_project(project_path)
 
-    results = []
-    print("Executing rename...")
 
-    msg = "seconds to run the script"
     pool = Pool(cpu_count())
-    pbar = tqdm(total=filecounter, unit="files")
+    progress_bar = tqdm(total=file_counter, unit="files", leave=False)
 
     def update(*a):
-        pbar.update()
+        progress_bar.update()
 
-    with time_it(msg):
-        for python_file in walk_on_py_files(inputpath):
-            results.append(pool.apply_async(execute_rename, args=(python_file,),
-                                            callback=update))
+    results = []
+    for python_file in walk_on_py_files(project_path):
+        results.append(pool.apply_async(execute_rename, args=(python_file, moved_imports),
+                                        callback=update))
 
         pool.close()
         pool.join()
-        pbar.close()
+        progress_bar.close()
 
     for r in results:
         try:
             r.get()
         except Exception as error:
-            print("An exception has occurred...")
-            print(error)
+            click.ClickException(error)
 
 
-def scan_total_of_files(inputpath):
-    filecounter = 0
-    for filepath in walk_on_py_files(inputpath):
-        filecounter += 1
-    return filecounter
-
-
-def execute_rename(paths):
-    for input_path in paths:
-        start_execution(input_path)
+def run_rename(**kwargs):
+    moved_imports = kwargs['moved_imports_file']
+    for input_path in kwargs['project_path']:
+        print(input_path)
+        start_execution(input_path, moved_imports)

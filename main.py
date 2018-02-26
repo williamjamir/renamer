@@ -3,6 +3,7 @@ import sys
 import click
 
 from commands.detect_modifications import track_modifications
+from commands.rename_import import run_rename
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -23,9 +24,10 @@ def track(**kwargs):
 
 
 @app.command()
+@click.argument('project_path', nargs=-1, type=click.Path(exists=True))
+@click.argument('moved_imports_file', type=click.Path(exists=True, resolve_path=True))
 def rename(**kwargs):
-    pass
-    # execute_rename()
+    run_rename(**kwargs)
 
 
 if __name__ == '__main__':

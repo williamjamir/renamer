@@ -7,8 +7,8 @@ from contextlib import contextmanager
 from click import ClickException, confirm, echo
 from git import Repo
 
-from commands.rename_import import scan_total_of_files
-from commands.utils import get_imports
+
+from commands.utils import get_imports, total_of_py_files_on_project
 
 CONFLICT_MSG = "\nUnfortunately, you moved two objects with the same name on " \
                "different paths.\nThis situation could be catastrophic while running " \
@@ -67,7 +67,7 @@ def track_modifications(**kwargs):
             "Please, change your activate branch to where you made you changes on the code, "
             "or use the option --origin_branch and --work_branch  ."
         )
-    file_counter = scan_total_of_files(project_path)
+    file_counter = total_of_py_files_on_project(project_path)
 
     with branch_checkout(repo, origin_branch):
         origin_import_list = {imp for imp in get_imports(project_path, file_counter)}
@@ -90,7 +90,7 @@ def write_list_to_file(list_with_modified_imports, file_name):
     """
     echo('Generating the file {0}'.format(file_name))
     with open(file_name, 'w') as fp:
-        fp.write("list_of_classes_to_move =")
+        fp.write("imports_to_move = ")
         fp.writelines(repr(list(list_with_modified_imports)))
 
 

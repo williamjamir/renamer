@@ -34,13 +34,12 @@ def get_imports(project_path, file_counter):
     each file.
 
     Note.: I inserted the TQDM here because was the only way that I could have an accurate
-    progress bar, you (the reader obviously) are more than welcome to share any thoughts or tips on
-    how to improve this approach =)
+    progress bar, feel free to share any thoughts or tips on how to improve this progress bar =)
 
     :type project_path: str
     :rtype: commands.utils.Import
     """
-    with tqdm(total=file_counter, unit='files', leave=True, desc=project_path) as pbar:
+    with tqdm(total=file_counter, unit='files', leave=False, desc=project_path) as pbar:
         for file_path in walk_on_py_files(project_path):
             pbar.update()
             with open(file_path, mode='r') as file:
@@ -61,3 +60,10 @@ def get_imports(project_path, file_counter):
 
                 for n in node.names:
                     yield Import(module, n.name)
+
+
+def total_of_py_files_on_project(project_path):
+    file_counter = 0
+    for _ in walk_on_py_files(project_path):
+        file_counter += 1
+    return file_counter
