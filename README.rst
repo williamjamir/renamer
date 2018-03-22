@@ -15,16 +15,15 @@ Module Renamer
 .. image:: https://codecov.io/gh/ESSS/module-renamer/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/ESSS/module-renamer
 
-.. image:: https://landscape.io/github/ESSS/module-renamer/master/landscape.svg?style=flat
-    :target: https://landscape.io/github/ESSS/module-renamer/master/
+ModuleRenamer is a script made to facilitate the renaming of the import from a project in bulk, using a file as input.
 
-.. image:: https://api.codeclimate.com/v1/badges/ae31b7d1b5eedcc010c3/maintainability
-   :target: https://codeclimate.com/github/ESSS/module-renamer/maintainability
+Let's says that you have a core library used across different projects.
 
-.. image:: https://scrutinizer-ci.com/g/ESSS/module-renamer/badges/quality-score.png?b=master
-    :target: https://scrutinizer-ci.com/g/ESSS/module-renamer
+When some modules are renamed/moved inside the core library, all projects that use this lib will have the imports broken until someone manually updates all the references.
 
-Facilitate moving python modules across project by rewriting import statements using google-pasta
+With ModuleRenamer, you can rename a whole project in bulk since it uses as input a list of moved imports, that can be created manually or automatically created from the script (more details later on.)
+
+Still confused? Let's look a example.
 
 
 * Free software: MIT license
