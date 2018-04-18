@@ -15,13 +15,19 @@ Module Renamer
 .. image:: https://codecov.io/gh/ESSS/module-renamer/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/ESSS/module-renamer
 
-ModuleRenamer is a script made to facilitate the renaming of the import from a project in bulk, using a file as input.
+ModuleRenamer is a tool to facilitate the renaming of the imports of a project in a bulk, using a single file as input.
 
+Motivation
+--------
 Let's says that you have a core library used across different projects.
+When a python module from this library is renamed/moved, all projects that import this module needs to manually update these references.
 
-When some modules are renamed/moved inside the core library, all projects that use this lib will have the imports broken until someone manually updates all the references.
+With ModuleRenamer, you can update these reference on the whole project using a single file, that can have multiple entries. Each entry should have the "old path" from the module and the "new path" of the module.
 
-With ModuleRenamer, you can rename a whole project in bulk since it uses as input a list of moved imports, that can be created manually or automatically created from the script (more details later on.)
+.. code-block:: bash 
+
+    imports_to_move = [('vegetable.tomato', 'fruits.tomato')]
+
 
 Still confused? Let's look a example.
 
