@@ -24,11 +24,9 @@ Let's says that you have a core library used across different projects.
 
 When a module from this library is renamed/moved, all references to this module needs to be manually updated.
 
-With ModuleRenamer, you can update these reference on the whole project using a single file, which can have multiple entries. 
+With ModuleRenamer, you can update these reference on the whole project using a single file, which can have multiple entries. On this files, each entry needs to have the ``old path`` from the module and the ``new path`` of the module.
 
-On this files, each entry needs to have the ``old path`` from the module and the ``new path`` of the module.
-
-So, in the following example all references to ``vegetable.tomato`` will be updated to ``fruits.tomato``
+The following example shows a file that instructs the tool to update all references of ``vegetable.tomato`` to ``fruits.tomato``
 
 .. code-block:: bash 
 
