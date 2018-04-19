@@ -35,8 +35,21 @@ The following example shows a file that instructs the tool to update all referen
 
 Let's look the tool in action
 
+Usage
+--------
 
+Let's say that we have the following structure:
 
+And the content of the files 
+
+.. csv-table:: Example
+   :header: "Treat", "Quantity", "Description"
+   :widths: 15, 10, 30
+
+   "def oi():
+        print(\'oi\')", 2.99, "On a stick!"
+   
+   
 
 
 
