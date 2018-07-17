@@ -1,0 +1,36 @@
+skip_branch_with_pr: true
+
+environment:
+  USERNAME: "test1"
+  LOGNAME: 'test2'
+  USER: 'test3'
+  LNAME: 'test4'
+  
+
+  matrix:
+    - PYTHON: "C:\\Python27"
+      TOX_ENV: "py27"
+      USERNAME: "test_prusse"
+
+    - PYTHON: "C:\\Python34"
+      TOX_ENV: "py34"
+
+    - PYTHON: "C:\\Python36"
+      TOX_ENV: "py36"
+  
+  global:
+      USERNAME: "test6"
+      LOGNAME: 'test7'
+      USER: 'test8'
+      LNAME: 'test9'
+      
+install:
+  - "%PYTHON%/Scripts/pip install tox"
+
+build: false  # Not a C# project, build stuff at the test step instead.
+
+test_script:
+  - cmd: set USERNAME="test_final"
+  - "%PYTHON%/Scripts/tox -e %TOX_ENV%"
+
+  
